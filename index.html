@@ -102,21 +102,49 @@ function draw(){
  ctx.globalAlpha=1;
  ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.strokeStyle='#e9c27b';ctx.lineWidth=8;ctx.stroke();
 
- // Display the current 20 messages, numbered continuously from 1 to 100.
+ // Put each numbered message inside its own coloured slice.
+ // Short wrapped lines keep the words readable and away from neighbouring slices.
+ function wrapWords(text,maxWidth){
+   const words=text.split(/\\s+/);
+   const lines=[];
+   let line='';
+   for(const word of words){
+     const test=line?line+' '+word:word;
+     if(line && ctx.measureText(test).width>maxWidth){
+       lines.push(line);
+       line=word;
+     }else{
+       line=test;
+     }
+   }
+   if(line)lines.push(line);
+   return lines;
+ }
  for(let i=0;i<PAGE_SIZE;i++){
    const mid=-Math.PI/2+(i+.5)*step;
    const globalNumber=page*PAGE_SIZE+i+1;
    const label=`${globalNumber}. ${wheelLabels[i]}`;
-   ctx.save();ctx.rotate(mid);ctx.translate(0,-278);
+   ctx.save();
+   ctx.rotate(mid);
+   ctx.translate(0,-286);
    if(mid>Math.PI/2 || mid< -Math.PI/2)ctx.rotate(Math.PI);
-   ctx.textAlign='center';ctx.textBaseline='middle';
-   ctx.font='bold 15px Arial, sans-serif';
-   ctx.lineWidth=4;ctx.strokeStyle='rgba(25,15,48,.78)';
-   ctx.strokeText(label,0,0,190);
+   ctx.textAlign='center';
+   ctx.textBaseline='middle';
+   ctx.font='bold 12px Arial, sans-serif';
+   const lines=wrapWords(label,76);
+   const lineHeight=14;
+   const visibleLines=lines.slice(0,5);
+   const totalHeight=visibleLines.length*lineHeight;
+   ctx.lineWidth=3.5;
+   ctx.strokeStyle='rgba(25,15,48,.88)';
    ctx.fillStyle=(i===selected)?'#fff8d9':'#fff7e9';
-   ctx.shadowColor=(i===selected)?'#fff0a8':'rgba(0,0,0,.55)';
-   ctx.shadowBlur=(i===selected)?15:3;
-   ctx.fillText(label,0,0,190);
+   ctx.shadowColor=(i===selected)?'#fff0a8':'rgba(0,0,0,.65)';
+   ctx.shadowBlur=(i===selected)?13:2;
+   visibleLines.forEach((line,lineIndex)=>{
+     const y=(lineIndex-(visibleLines.length-1)/2)*lineHeight;
+     ctx.strokeText(line,0,y,76);
+     ctx.fillText(line,0,y,76);
+   });
    ctx.restore();
  }
  ctx.restore();
