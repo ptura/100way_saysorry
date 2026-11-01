@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#090b22">
+<meta name="description" content="A beautiful wheel of 100 ways to say sorry.">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>100 Ways to Say Sorry</title>
+<style>
+:root{color-scheme:dark;--gold:#e9c27b;--cream:#fff3df;--muted:#b8b4ce}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:Georgia,serif;color:var(--cream);background:radial-gradient(ellipse at 50% 20%,#28204c 0%,#11132e 45%,#07091b 100%);overflow-x:hidden}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;background-image:radial-gradient(1px 1px at 10% 20%,#fff 99%,transparent),radial-gradient(1px 1px at 75% 15%,#f6dba8 99%,transparent),radial-gradient(1px 1px at 88% 65%,#fff 99%,transparent),radial-gradient(1px 1px at 23% 76%,#fff 99%,transparent),radial-gradient(1px 1px at 55% 88%,#f6dba8 99%,transparent);background-size:220px 220px;opacity:.7}
+main{width:min(100%,720px);margin:auto;padding:28px 18px 36px;text-align:center;position:relative}
+.eyebrow{font:600 11px/1.4 system-ui,sans-serif;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);margin-top:8px}
+h1{font-size:clamp(30px,8vw,48px);font-weight:normal;line-height:1.05;margin:12px 0 8px}
+.subtitle{font:14px/1.5 system-ui,sans-serif;color:var(--muted);margin:0 auto 20px;max-width:340px}
+.stage{width:min(88vw,440px);aspect-ratio:1;margin:8px auto 18px;position:relative;display:grid;place-items:center}
+canvas{width:100%;height:100%;filter:drop-shadow(0 15px 28px #0008)}
+.hub{position:absolute;width:39%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 35% 25%,#343052,#111329 72%);border:1px solid #d6b67599;box-shadow:0 0 0 7px #e9c27b12,0 0 34px #e9c27b25;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px}
+.hub strong{font-size:clamp(14px,4vw,21px);color:var(--gold);font-weight:normal;letter-spacing:.08em}
+.hub span{font:10px system-ui,sans-serif;letter-spacing:.18em;color:#eee2ce;margin-top:5px}
+.message{min-height:58px;display:flex;align-items:center;justify-content:center;font-size:clamp(19px,5vw,26px);line-height:1.25;padding:0 12px;margin:0 auto 16px;max-width:520px;color:#fff2d9;text-shadow:0 2px 18px #e6b96955}
+.controls{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+button{border:1px solid #d9b87588;border-radius:999px;padding:13px 23px;min-height:46px;background:linear-gradient(135deg,#dcb875,#9b7040);color:#171326;font:600 13px system-ui,sans-serif;letter-spacing:.04em;cursor:pointer}
+button.secondary{background:#ffffff0b;color:var(--cream);border-color:#ffffff35}
+button:disabled{opacity:.5;cursor:default}
+.hint{font:12px/1.5 system-ui,sans-serif;color:#aaa6bf;margin:17px auto 0}
+.message-list{display:grid;gap:8px;text-align:left;margin:22px auto 0;max-width:560px}
+.message-item{padding:11px 14px;border:1px solid #ffffff24;border-radius:12px;background:#ffffff09;color:#d8d3e6;font:14px/1.4 system-ui,sans-serif;transition:background .2s,border-color .2s,transform .2s}
+.message-item.active{background:#e9c27b24;border:1px solid var(--gold);color:#fff1d3;transform:scale(1.015);box-shadow:0 0 18px #e9c27b20}
+.message-item .number{display:inline-block;min-width:30px;color:var(--gold);font-weight:700}
+footer{font:11px system-ui,sans-serif;color:#77758f;margin-top:27px}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">A little wheel of heartfelt words</div>
+  <h1>100 Ways to Say Sorry</h1>
+  <p class="subtitle">This wheel helps you say what is in your heart.</p>
+  <section class="stage" aria-label="Animated apology wheel">
+    <canvas id="wheel" width="900" height="900" aria-label="A colourful wheel with 100 apology messages"></canvas>
+    <div class="hub"><strong>WITH LOVE</strong><span>AND SINCERITY</span></div>
+  </section>
+  <div class="message" id="message" aria-live="polite">I'm truly sorry.</div>
+  <section id="message-list" class="message-list" aria-label="All 100 apology messages" hidden></section>
+  <div class="controls">
+    <button id="spin">SPIN THE WHEEL</button>
+    <button id="next" class="secondary">NEXT MESSAGE</button>
+    <button id="share" class="secondary">SHARE</button>
+  </div>
+  <p class="hint" id="hint">Tap “Spin the Wheel” to discover a message.</p>
+  <footer>Please accept my 100 ways of saying sorry.</footer>
+</main>
+<script>
+const phrases = [
+"I'm so sorry","I was wrong","Please forgive me","I take full responsibility","That was my mistake",
+"I should have listened","I owe you an apology","I didn't mean to hurt you","I'm sorry I let you down","I messed up",
+"I'm truly sorry","I regret my words","I was selfish","I should have been there","I'm sorry for yelling",
+"I'm sorry I wasn't honest","I was not thinking of you","I handled it badly","I'm ashamed of how I acted","You deserved better",
+"I'm sorry I broke my promise","I'm sorry I forgot","I put my pride first","I'm sorry I didn't call","I was unfair to you",
+"I judged too quickly","I'm sorry I dismissed you","I should have trusted you","I'm sorry I interrupted","I wasn't fair",
+"I made it about me","I'm sorry I was distant","I'm sorry I was late again","I ignored what you needed","I let my temper win",
+"I said things I didn't mean","I'm sorry I made you worry","I didn't see your side","I should have asked first","I'm sorry I stayed silent",
+"I took you for granted","I'm sorry I was careless","My words were unkind","I'm sorry for the silence","I was too proud to say it",
+"I'm sorry I wasn't listening","I hurt someone I love","I'm sorry I broke your trust","I should have said it sooner","I'm sorry it took so long",
+"I'm sorry I made excuses","No excuses, just sorry","I want to make it right","Let me make it up to you","I'm here to listen now",
+"I'll do better, I promise","I'll be more patient","I'm learning from this","Tell me how to fix it","I miss you, and I'm sorry",
+"You matter more than winning","I can't lose you over this","I'm sorry for the hurt","I'm sorry for the tears","I wish I could undo it",
+"I'd take it back if I could","I'm sorry for my harsh words","I was scared and lashed out","I let stress speak for me","I'm sorry I wasn't kind",
+"You didn't deserve that","It was never your fault","I'm sorry I blamed you","I'm sorry I compared us","I love you, and I'm sorry",
+"Can we start over?","I'm sorry. Always.","I should have respected you","I should have understood","I should have been more careful",
+"I never meant to hurt you","I regret what happened","I value your feelings","I should have been honest","I want to earn your trust",
+"I will respect your boundaries","I should have shown more care","I am ready to listen","I know I hurt you","I hope you can forgive me",
+"You deserve my honesty","I will learn from this","I want to rebuild our trust","I am sorry for my actions","I should have treated you better",
+"Your feelings matter to me","I never want to hurt you again","Please give me a chance","I will make things right","I am truly sorry"
+];
+const canvas=document.getElementById('wheel'),ctx=canvas.getContext('2d');
+const message=document.getElementById('message'),hint=document.getElementById('hint');
+const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let rotation=0,selected=0,busy=false,raf=0,hasSpun=false;
+const colors=['#5965c9','#8660c5','#c35e8e','#dc805e','#d7a85d'];
+function colorAt(t){let x=t*(colors.length-1),i=Math.min(Math.floor(x),colors.length-2),f=x-i;return mixColor(colors[i],colors[i+1],f)}
+function mixColor(a,b,t){let A=a.match(/\w\w/g).map(v=>parseInt(v,16)),B=b.match(/\w\w/g).map(v=>parseInt(v,16));return `rgb(${A.map((v,i)=>Math.round(v+(B[i]-v)*t)).join(',')})`}
+function draw(){
+ const w=canvas.width,c=w/2,r=410,step=Math.PI*2/100;
+ ctx.clearRect(0,0,w,w);ctx.save();ctx.translate(c,c);ctx.rotate(rotation);
+ for(let i=0;i<100;i++){
+   let a=-Math.PI/2+i*step;
+   ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,r,a,a+step);ctx.closePath();
+   ctx.fillStyle=colorAt(i/99);ctx.globalAlpha=.88;ctx.fill();
+   ctx.strokeStyle='rgba(255,239,210,.34)';ctx.lineWidth=1.4;ctx.stroke();
+ }
+ ctx.globalAlpha=1;
+ ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.strokeStyle='#e9c27b';ctx.lineWidth=7;ctx.stroke();
+ for(let i=0;i<100;i++){let a=i*step-Math.PI/2;ctx.beginPath();ctx.arc(Math.cos(a)*(r-7),Math.sin(a)*(r-7),3,0,Math.PI*2);ctx.fillStyle='#ffe9b9';ctx.fill()}
+ ctx.restore();
+ ctx.save();ctx.translate(c,c-r+5);ctx.beginPath();ctx.moveTo(-19,-25);ctx.lineTo(19,-25);ctx.lineTo(0,15);ctx.closePath();ctx.fillStyle='#fff0c9';ctx.shadowColor='#e9c27b';ctx.shadowBlur=18;ctx.fill();ctx.restore();
+}
+function renderMessageList(){
+ const list=document.getElementById('message-list');
+ list.hidden=false;
+ list.innerHTML=phrases.map((phrase,i)=>`<div class="message-item" id="phrase-${i}"><span class="number">${String(i+1).padStart(2,'0')}.</span>${phrase}</div>`).join('');
+}
+function show(i){
+ selected=(i+100)%100;
+ message.textContent=phrases[selected];
+ hint.textContent=`Message ${selected+1} of 100 is highlighted below.`;
+ document.querySelectorAll('.message-item').forEach((item,index)=>item.classList.toggle('active',index===selected));
+ const active=document.getElementById(`phrase-${selected}`);
+ if(active && hasSpun) active.scrollIntoView({behavior:reduced?'auto':'smooth',block:'nearest'});
+}
+function spin(){
+ if(busy || hasSpun)return;busy=true;document.getElementById('spin').disabled=true;
+ const start=rotation,target=start+(Math.PI*2*(4+Math.random()*3))+Math.random()*Math.PI*2;
+ const duration=reduced?0:4200,t0=performance.now();
+ function frame(now){let p=duration?Math.min(1,(now-t0)/duration):1;let ease=1-Math.pow(1-p,4);rotation=start+(target-start)*ease;draw();
+ if(p<1)raf=requestAnimationFrame(frame);else{busy=false;hasSpun=true;document.getElementById('spin').textContent='WHEEL SPUN';document.getElementById('spin').disabled=true;renderMessageList();let angle=((Math.PI*2-(rotation%(Math.PI*2)))%(Math.PI*2));show(Math.floor(angle/(Math.PI*2/100))%100);}}
+ raf=requestAnimationFrame(frame);
+}
+document.getElementById('spin').addEventListener('click',spin);
+document.getElementById('next').addEventListener('click',()=>{if(!hasSpun){hint.textContent='Spin the wheel once to reveal all 100 messages.';return;}show(selected+1);});
+document.getElementById('share').addEventListener('click',async()=>{
+ const text=`${phrases[selected]}\n\n100 Ways to Say Sorry`;
+ if(navigator.share){try{await navigator.share({title:'100 Ways to Say Sorry',text})}catch(e){}}
+ else if(navigator.clipboard?.writeText){try{await navigator.clipboard.writeText(text);hint.textContent='Message copied. You can paste it into a chat.'}catch(e){hint.textContent=text}}
+ else hint.textContent=text;
+});
+draw();show(0);
+if('serviceWorker' in navigator && location.protocol!=='file:'){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}
+</script>
+</body>
+</html>
