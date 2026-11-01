@@ -28,6 +28,10 @@ button{border:1px solid #d9b87588;border-radius:999px;padding:13px 23px;min-heig
 button.secondary{background:#ffffff0b;color:var(--cream);border-color:#ffffff35}
 button:disabled{opacity:.5;cursor:default}
 .hint{font:12px/1.5 system-ui,sans-serif;color:#aaa6bf;margin:17px auto 0}
+.message-list{display:grid;gap:8px;text-align:left;margin:22px auto 0;max-width:560px}
+.message-item{padding:11px 14px;border:1px solid #ffffff24;border-radius:12px;background:#ffffff09;color:#d8d3e6;font:14px/1.4 system-ui,sans-serif;transition:background .2s,border-color .2s,transform .2s}
+.message-item.active{background:#e9c27b24;border:1px solid var(--gold);color:#fff1d3;transform:scale(1.015);box-shadow:0 0 18px #e9c27b20}
+.message-item .number{display:inline-block;min-width:30px;color:var(--gold);font-weight:700}
 footer{font:11px system-ui,sans-serif;color:#77758f;margin-top:27px}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
 </style>
@@ -36,19 +40,20 @@ footer{font:11px system-ui,sans-serif;color:#77758f;margin-top:27px}
 <main>
   <div class="eyebrow">A little wheel of heartfelt words</div>
   <h1>100 Ways to Say Sorry</h1>
-  <p class="subtitle">Sometimes the right words are hard to find. Let the wheel help you say what is in your heart.</p>
+  <p class="subtitle">This wheel helps you say what is in your heart.</p>
   <section class="stage" aria-label="Animated apology wheel">
     <canvas id="wheel" width="900" height="900" aria-label="A colourful wheel with 100 apology messages"></canvas>
     <div class="hub"><strong>WITH LOVE</strong><span>AND SINCERITY</span></div>
   </section>
   <div class="message" id="message" aria-live="polite">I'm truly sorry.</div>
+  <section id="message-list" class="message-list" aria-label="All 100 apology messages" hidden></section>
   <div class="controls">
     <button id="spin">SPIN THE WHEEL</button>
     <button id="next" class="secondary">NEXT MESSAGE</button>
     <button id="share" class="secondary">SHARE</button>
   </div>
   <p class="hint" id="hint">Tap “Spin the Wheel” to discover a message.</p>
-  <footer>Made with care · 100 heartfelt ways to say sorry</footer>
+  <footer>Please accept my 100 ways of saying sorry.</footer>
 </main>
 <script>
 const phrases = [
@@ -76,7 +81,7 @@ const phrases = [
 const canvas=document.getElementById('wheel'),ctx=canvas.getContext('2d');
 const message=document.getElementById('message'),hint=document.getElementById('hint');
 const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-let rotation=0,selected=0,busy=false,raf=0;
+let rotation=0,selected=0,busy=false,raf=0,hasSpun=false;
 const colors=['#5965c9','#8660c5','#c35e8e','#dc805e','#d7a85d'];
 function colorAt(t){let x=t*(colors.length-1),i=Math.min(Math.floor(x),colors.length-2),f=x-i;return mixColor(colors[i],colors[i+1],f)}
 function mixColor(a,b,t){let A=a.match(/\w\w/g).map(v=>parseInt(v,16)),B=b.match(/\w\w/g).map(v=>parseInt(v,16));return `rgb(${A.map((v,i)=>Math.round(v+(B[i]-v)*t)).join(',')})`}
@@ -95,17 +100,29 @@ function draw(){
  ctx.restore();
  ctx.save();ctx.translate(c,c-r+5);ctx.beginPath();ctx.moveTo(-19,-25);ctx.lineTo(19,-25);ctx.lineTo(0,15);ctx.closePath();ctx.fillStyle='#fff0c9';ctx.shadowColor='#e9c27b';ctx.shadowBlur=18;ctx.fill();ctx.restore();
 }
-function show(i){selected=(i+100)%100;message.textContent=phrases[selected];hint.textContent=`Message ${selected+1} of 100`; }
+function renderMessageList(){
+ const list=document.getElementById('message-list');
+ list.hidden=false;
+ list.innerHTML=phrases.map((phrase,i)=>`<div class="message-item" id="phrase-${i}"><span class="number">${String(i+1).padStart(2,'0')}.</span>${phrase}</div>`).join('');
+}
+function show(i){
+ selected=(i+100)%100;
+ message.textContent=phrases[selected];
+ hint.textContent=`Message ${selected+1} of 100 is highlighted below.`;
+ document.querySelectorAll('.message-item').forEach((item,index)=>item.classList.toggle('active',index===selected));
+ const active=document.getElementById(`phrase-${selected}`);
+ if(active && hasSpun) active.scrollIntoView({behavior:reduced?'auto':'smooth',block:'nearest'});
+}
 function spin(){
- if(busy)return;busy=true;document.getElementById('spin').disabled=true;
+ if(busy || hasSpun)return;busy=true;document.getElementById('spin').disabled=true;
  const start=rotation,target=start+(Math.PI*2*(4+Math.random()*3))+Math.random()*Math.PI*2;
  const duration=reduced?0:4200,t0=performance.now();
  function frame(now){let p=duration?Math.min(1,(now-t0)/duration):1;let ease=1-Math.pow(1-p,4);rotation=start+(target-start)*ease;draw();
- if(p<1)raf=requestAnimationFrame(frame);else{busy=false;document.getElementById('spin').disabled=false;let angle=((Math.PI*2-(rotation%(Math.PI*2)))%(Math.PI*2));show(Math.floor(angle/(Math.PI*2/100))%100);}}
+ if(p<1)raf=requestAnimationFrame(frame);else{busy=false;hasSpun=true;document.getElementById('spin').textContent='WHEEL SPUN';document.getElementById('spin').disabled=true;renderMessageList();let angle=((Math.PI*2-(rotation%(Math.PI*2)))%(Math.PI*2));show(Math.floor(angle/(Math.PI*2/100))%100);}}
  raf=requestAnimationFrame(frame);
 }
 document.getElementById('spin').addEventListener('click',spin);
-document.getElementById('next').addEventListener('click',()=>show(selected+1));
+document.getElementById('next').addEventListener('click',()=>{if(!hasSpun){hint.textContent='Spin the wheel once to reveal all 100 messages.';return;}show(selected+1);});
 document.getElementById('share').addEventListener('click',async()=>{
  const text=`${phrases[selected]}\n\n100 Ways to Say Sorry`;
  if(navigator.share){try{await navigator.share({title:'100 Ways to Say Sorry',text})}catch(e){}}
